@@ -177,54 +177,72 @@ def go_to_forest():
         text=f"Вы нашли: {found_herb}!\n\nОписание:\n{description}",
         fg="#e6dfd3"
     )
+
+
+
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ИНТЕРФЕЙСА ---
 
 def update_inventory_display():
     """Функция, которая считывает инвентарь игрока и обновляет текст в Сумке"""
-    # Если в инвентаре вообще ничего нет
     if not player_stats["inventory"]:
         inventory_label.config(text="Ваша сумка пока пуста...")
         return
     
-    # Формируем красивый текстовый список предметов
     lines = []
-    for herb_name, quantity in player_stats["inventory"].items():
-        lines.append(f"• {herb_name}: {quantity} шт.")
+    # Теперь мы перебираем инвентарь, где лежат наши скрытые объекты
+    for display_name, item_data in player_stats["inventory"].items():
+        quantity = item_data["quantity"]
+        lines.append(f"• {display_name}: {quantity} шт.")
     
-    # Объединяем все строчки через перенос строки \n
     final_text = "\n".join(lines)
-    
-    # Обновляем надпись на экране!
     inventory_label.config(text=final_text)
 
 
-# --- ФУНКЦИИ КНОПОК ---
+# --- ФУНКЦИИ КНОПОК И СОБЫТИЙ ---
 
-def go_to_forest():
+def go_to_forest(event=None):
+    """Функция сбора трав. Запускается по кнопке или горячей клавише"""
+    # Если функция вызвана нажатием клавиатуры (event существует)
+    if event is not None:
+        # Проверяем, какой символ был нажат.
+        # event.char содержит именно ту букву, которую ввёл пользователь
+        if event.char not in ['f', 'F', 'а', 'А']:
+            return # Если нажата любая другая кнопка (например, 'Ц' или 'X') — ничего не делаем
     import random
-    # Выбираем только те травы, у которых редкость = 1
+    
+    # Собираем пока только редкость 1
     starting_herbs = [name for name, info in INGREDIENTS_HAR.items() if info["rarity"] == 1]
-    found_herb = random.choice(starting_herbs)
+    true_name = random.choice(starting_herbs)
     
-    # --- ЛОГИКА ИНВЕНТАРЯ ---
-    # Если такой травы еще нет в сумке, добавляем её со значением 1
-    if found_herb not in player_stats["inventory"]:
-        player_stats["inventory"][found_herb] = 1
+    # Подтягиваем характеристики из нашей большой базы знаний
+    rarity = INGREDIENTS_HAR[true_name]["rarity"]
+    
+    # Формируем имя, которое увидит игрок
+    display_name = f"Неизвестное растение (Редк. {rarity})"
+    
+    # --- ЛОГИКА ТАЙНОГО ИНВЕНТАРЯ ---
+    if display_name not in player_stats["inventory"]:
+        # Создаем внутри инвентаря скрытый словарик для этой группы трав
+        player_stats["inventory"][display_name] = {
+            "quantity": 1,
+            "true_names": [true_name], # Список истинных имён, которые тут прячутся
+            "rarity": rarity
+        }
     else:
-        # Если уже есть — увеличиваем количество на 1
-        player_stats["inventory"][found_herb] += 1
+        player_stats["inventory"][display_name]["quantity"] += 1
+        player_stats["inventory"][display_name]["true_names"].append(true_name)
     
-    # Вызываем обновление текста в правой панели!
+    # Обновляем экран инвентаря
     update_inventory_display()
     
-    # Выводим лог сбора в левой панели
-    description = INGREDIENTS_HAR[found_herb]["description"]
+    # Меняем текст в лесу: игрок видит только редкость, но не имя!
     forest_status.config(
-        text=f"Вы нашли: {found_herb}!\n\nОписание:\n{description}",
+        text=f"Вы тщательно обыскали заросли и срезали странный стебель.\n\nВ сумку добавлено: {display_name}",
         fg="#e6dfd3"
     )
 
 
+#создание кнопок
 gather_button = tk.Button(
     forest_frame,
     text="Отправиться на поиски",
@@ -236,6 +254,10 @@ gather_button = tk.Button(
     command=go_to_forest   
 )
 gather_button.pack(pady=10)
+
+# Теперь окно слушает вообще любое нажатие клавиши
+root.bind("<Key>", go_to_forest)
+
 
 
 # ПРАВАЯ ЧАСТЬ: Сумка Алхимика (Инвентарь)
@@ -255,7 +277,6 @@ inventory_label = tk.Label(
     anchor="nw"     # Прижимаем текст к верхнему левому углу
 )
 inventory_label.pack(fill="both", expand=True, padx=10, pady=10)
-
 
 
 
