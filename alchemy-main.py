@@ -109,87 +109,105 @@ player_stats = {
 
 # 3. интерфейс
 
-# Создаем главное окно игры
 root = tk.Tk()
 root.title("Лаборатория Алхимика: Сбор и Крафт")
-root.geometry("600x500")
-root.configure(bg="#2c2421") # Уютный темно-коричневый цвет фонового свитка
+root.geometry("650x500")
+root.configure(bg="#2c2421")
 
 # --- ПАНЕЛЬ СТАТИСТИКИ ПЕРСОНАЖА ---
-# Создаем контейнер (рамку), чтобы сгруппировать статы алхимика
 stats_frame = tk.LabelFrame(
     root, 
     text=" Профиль Алхимика ", 
     bg="#2c2421", 
-    fg="#d4af37",          # Золотой цвет для заголовка рамки
-    font=("Courier", 12, "bold") # Фэнтезийный моноширинный шрифт
+    fg="#d4af37",          
+    font=("Courier", 12, "bold")
 )
-# Размещаем рамку вверху окна с небольшими отступами
 stats_frame.pack(padx=15, pady=15, fill="x")
 
-# Создаем надпись для Уровня и Мудрости
 stats_label = tk.Label(
     stats_frame,
     text=f"Уровень: {player_stats['level']}   |   Мудрость: {player_stats['wisdom']}",
     bg="#2c2421",
-    fg="#e6dfd3",          # Мягкий пергаментный цвет текста
+    fg="#e6dfd3",          
     font=("Courier", 11)
 )
 stats_label.pack(anchor="w", padx=10, pady=5)
 
-# Создаем надпись для Маны
 mana_label = tk.Label(
     stats_frame,
     text=f"Мана: {player_stats['mana']} / {player_stats['max_mana']}",
     bg="#2c2421",
-    fg="#4a90e2",          # Магический синий цвет для маны
+    fg="#4a90e2",          
     font=("Courier", 11, "bold")
 )
 mana_label.pack(anchor="w", padx=10, pady=5)
 
-# --- ИГРОВОЙ ЗОНА: ЗАЧАРОВАННЫЙ ЛЕС ---
 
-# Текстовое поле, которое будет описывать события в лесу
+# --- ГЛАВНАЯ РАБОЧАЯ ЗОНА (Разделение на Лево и Право) ---
+# Создаем общий контейнер для нижней части игры
+main_area = tk.Frame(root, bg="#2c2421")
+main_area.pack(fill="both", expand=True, padx=15, pady=5)
+
+# ЛЕВАЯ ЧАСТЬ: Зачарованный лес
+forest_frame = tk.LabelFrame(
+    main_area, text="Зачарованный Лес ", bg="#2c2421", fg="#a89f91", font=("Courier", 11, "bold")
+)
+forest_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+
 forest_status = tk.Label(
-    root,
-    text="Вы стоите на опушке Зачарованного леса. Вокруг тишина...",
+    forest_frame,
+    text="Вы стоите на опушке Зачарованного леса.\nВокруг тишина...",
     bg="#2c2421",
-    fg="#a89f91",          # Тусклый цвет для атмосферных описаний
-    font=("Courier", 11, "italic"),
-    wraplength=550         # Чтобы длинный текст автоматически переносился на новую строку
+    fg="#a89f91",          
+    font=("Courier", 10, "italic"),
+    wraplength=280
 )
 forest_status.pack(pady=40)
 
-# Функция, которая вызывается при нажатии на кнопку
+# Функция сбора трав
 def go_to_forest():
-    # Пока что сделаем мгновенный сбор случайной базовой травы для проверки
     import random
-    
-    # Выбираем только те травы, у которых редкость = 1 (для старта)
+    # Выбираем только те травы, у которых редкость = 1
     starting_herbs = [name for name, info in INGREDIENTS_HAR.items() if info["rarity"] == 1]
     found_herb = random.choice(starting_herbs)
     
-    # Получаем описание этой травы из нашего взрослого словаря
     description = INGREDIENTS_HAR[found_herb]["description"]
     
-    # Обновляем текст на экране!
     forest_status.config(
-        text=f"Вы обыскали кусты и нашли: {found_herb}!\n\nОписание: {description}",
-        fg="#e6dfd3" # Делаем текст ярче, когда что-то нашли
+        text=f"Вы нашли: {found_herb}!\n\nОписание:\n{description}",
+        fg="#e6dfd3"
     )
 
-# Создаем саму кнопку для похода в лес
 gather_button = tk.Button(
-    root,
-    text="Отправиться в Зачарованный лес",
-    bg="#3e322d",          # Чуть более светлый коричневый для кнопки
-    fg="#d4af37",          # Золотой текст кнопки
-    activebackground="#54433c", # Цвет кнопки при нажатии
+    forest_frame,
+    text="Отправиться на поиски",
+    bg="#3e322d",          
+    fg="#d4af37",          
+    activebackground="#54433c", 
     activeforeground="#ffffff",
-    font=("Courier", 11, "bold"),
-    command=go_to_forest   # Указываем, какую функцию запускать при клике!
+    font=("Courier", 10, "bold"),
+    command=go_to_forest   
 )
 gather_button.pack(pady=10)
+
+
+# ПРАВАЯ ЧАСТЬ: Сумка Алхимика (Инвентарь)
+inventory_frame = tk.LabelFrame(
+    main_area, text="Сумка Алхимика ", bg="#2c2421", fg="#d4af37", font=("Courier", 11, "bold")
+)
+inventory_frame.pack(side="right", fill="both", expand=True, padx=5, pady=5)
+
+# Надпись, в которой будет выводиться список наших предметов
+inventory_label = tk.Label(
+    inventory_frame,
+    text="Ваша сумка пока пуста...",
+    bg="#2c2421",
+    fg="#e6dfd3",
+    font=("Courier", 10),
+    justify="left", # Выравнивание текста по левому краю
+    anchor="nw"     # Прижимаем текст к верхнему левому углу
+)
+inventory_label.pack(fill="both", expand=True, padx=10, pady=10)
 
 
 
