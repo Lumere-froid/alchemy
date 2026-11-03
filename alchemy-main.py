@@ -177,6 +177,53 @@ def go_to_forest():
         text=f"Вы нашли: {found_herb}!\n\nОписание:\n{description}",
         fg="#e6dfd3"
     )
+# --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ИНТЕРФЕЙСА ---
+
+def update_inventory_display():
+    """Функция, которая считывает инвентарь игрока и обновляет текст в Сумке"""
+    # Если в инвентаре вообще ничего нет
+    if not player_stats["inventory"]:
+        inventory_label.config(text="Ваша сумка пока пуста...")
+        return
+    
+    # Формируем красивый текстовый список предметов
+    lines = []
+    for herb_name, quantity in player_stats["inventory"].items():
+        lines.append(f"• {herb_name}: {quantity} шт.")
+    
+    # Объединяем все строчки через перенос строки \n
+    final_text = "\n".join(lines)
+    
+    # Обновляем надпись на экране!
+    inventory_label.config(text=final_text)
+
+
+# --- ФУНКЦИИ КНОПОК ---
+
+def go_to_forest():
+    import random
+    # Выбираем только те травы, у которых редкость = 1
+    starting_herbs = [name for name, info in INGREDIENTS_HAR.items() if info["rarity"] == 1]
+    found_herb = random.choice(starting_herbs)
+    
+    # --- ЛОГИКА ИНВЕНТАРЯ ---
+    # Если такой травы еще нет в сумке, добавляем её со значением 1
+    if found_herb not in player_stats["inventory"]:
+        player_stats["inventory"][found_herb] = 1
+    else:
+        # Если уже есть — увеличиваем количество на 1
+        player_stats["inventory"][found_herb] += 1
+    
+    # Вызываем обновление текста в правой панели!
+    update_inventory_display()
+    
+    # Выводим лог сбора в левой панели
+    description = INGREDIENTS_HAR[found_herb]["description"]
+    forest_status.config(
+        text=f"Вы нашли: {found_herb}!\n\nОписание:\n{description}",
+        fg="#e6dfd3"
+    )
+
 
 gather_button = tk.Button(
     forest_frame,
