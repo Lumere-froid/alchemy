@@ -1,3 +1,7 @@
+import tkinter as tk
+
+
+# 1. База трав
 INGREDIENTS_HAR = {
     # Редкость 1 (Обычные, сбор 3 сек, мудрость 1)
     "Сорная трава": {
@@ -91,3 +95,58 @@ INGREDIENTS_HAR = {
         "description": "Цветок на тонкой белоснежной ножке, выглядещий как бриллиант. Превращает в лёд любую жидкость, входящую в состав того, что к нему прикоснулось."
         },
 }
+
+
+# 2. Игрок
+player_stats = {
+    "level": 1,
+    "wisdom": 1,
+    "mana": 10,       
+    "max_mana": 75,
+    "inventory": {},          
+    "discovered_recipes": []   
+}
+
+# 3. интерфейс
+
+# Создаем главное окно игры
+root = tk.Tk()
+root.title("Лаборатория Алхимика: Сбор и Крафт")
+root.geometry("600x500")
+root.configure(bg="#2c2421") # Уютный темно-коричневый цвет фонового свитка
+
+# --- ПАНЕЛЬ СТАТИСТИКИ ПЕРСОНАЖА ---
+# Создаем контейнер (рамку), чтобы сгруппировать статы алхимика
+stats_frame = tk.LabelFrame(
+    root, 
+    text=" Профиль Алхимика ", 
+    bg="#2c2421", 
+    fg="#d4af37",          # Золотой цвет для заголовка рамки
+    font=("Courier", 12, "bold") # Фэнтезийный моноширинный шрифт
+)
+# Размещаем рамку вверху окна с небольшими отступами
+stats_frame.pack(padx=15, pady=15, fill="x")
+
+# Создаем надпись для Уровня и Мудрости
+stats_label = tk.Label(
+    stats_frame,
+    text=f"Уровень: {player_stats['level']}   |   Мудрость: {player_stats['wisdom']}",
+    bg="#2c2421",
+    fg="#e6dfd3",          # Мягкий пергаментный цвет текста
+    font=("Courier", 11)
+)
+stats_label.pack(anchor="w", padx=10, pady=5)
+
+# Создаем надпись для Маны
+mana_label = tk.Label(
+    stats_frame,
+    text=f"Мана: {player_stats['mana']} / {player_stats['max_mana']}",
+    bg="#2c2421",
+    fg="#4a90e2",          # Магический синий цвет для маны
+    font=("Courier", 11, "bold")
+)
+mana_label.pack(anchor="w", padx=10, pady=5)
+
+
+# Запускаем постоянный цикл окна, чтобы оно не закрывалось
+root.mainloop()
