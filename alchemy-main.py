@@ -147,6 +147,52 @@ mana_label = tk.Label(
 )
 mana_label.pack(anchor="w", padx=10, pady=5)
 
+# --- ИГРОВОЙ ЗОНА: ЗАЧАРОВАННЫЙ ЛЕС ---
+
+# Текстовое поле, которое будет описывать события в лесу
+forest_status = tk.Label(
+    root,
+    text="Вы стоите на опушке Зачарованного леса. Вокруг тишина...",
+    bg="#2c2421",
+    fg="#a89f91",          # Тусклый цвет для атмосферных описаний
+    font=("Courier", 11, "italic"),
+    wraplength=550         # Чтобы длинный текст автоматически переносился на новую строку
+)
+forest_status.pack(pady=40)
+
+# Функция, которая вызывается при нажатии на кнопку
+def go_to_forest():
+    # Пока что сделаем мгновенный сбор случайной базовой травы для проверки
+    import random
+    
+    # Выбираем только те травы, у которых редкость = 1 (для старта)
+    starting_herbs = [name for name, info in INGREDIENTS_HAR.items() if info["rarity"] == 1]
+    found_herb = random.choice(starting_herbs)
+    
+    # Получаем описание этой травы из нашего взрослого словаря
+    description = INGREDIENTS_HAR[found_herb]["description"]
+    
+    # Обновляем текст на экране!
+    forest_status.config(
+        text=f"Вы обыскали кусты и нашли: {found_herb}!\n\nОписание: {description}",
+        fg="#e6dfd3" # Делаем текст ярче, когда что-то нашли
+    )
+
+# Создаем саму кнопку для похода в лес
+gather_button = tk.Button(
+    root,
+    text="Отправиться в Зачарованный лес",
+    bg="#3e322d",          # Чуть более светлый коричневый для кнопки
+    fg="#d4af37",          # Золотой текст кнопки
+    activebackground="#54433c", # Цвет кнопки при нажатии
+    activeforeground="#ffffff",
+    font=("Courier", 11, "bold"),
+    command=go_to_forest   # Указываем, какую функцию запускать при клике!
+)
+gather_button.pack(pady=10)
+
+
+
 
 # Запускаем постоянный цикл окна, чтобы оно не закрывалось
 root.mainloop()
