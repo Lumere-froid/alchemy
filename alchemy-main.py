@@ -165,18 +165,75 @@ forest_status = tk.Label(
 forest_status.pack(pady=40)
 
 # Функция сбора трав
-def go_to_forest():
+
+
+is_gathering = False
+
+def go_to_forest(event=None):
+    """Выбирает будущую добычу из словаря, берет её время сбора и запускает таймер"""
+    global is_gathering
     import random
-    # Выбираем только те травы, у которых редкость = 1
-    starting_herbs = [name for name, info in INGREDIENTS_HAR.items() if info["rarity"] == 1]
-    found_herb = random.choice(starting_herbs)
     
-    description = INGREDIENTS_HAR[found_herb]["description"]
+    if event is not None:
+        if event.char not in ['f', 'F', 'а', 'А']:
+            return
+            
+    if is_gathering:
+        return
+        
+    is_gathering = True
+    gather_button.config(state="disabled")
+    
+    # 1. Заранее выбираем траву (пока 1-й редкости)
+    starting_herbs = [name for name, info in INGREDIENTS_HAR.items() if info["rarity"] == 1]
+    target_herb = random.choice(starting_herbs)
+    
+    # 2. БЕРЁМ ВРЕМЯ ПРЯМО ИЗ СЛОВАРЯ!
+    gather_duration = INGREDIENTS_HAR[target_herb]["gather_time"]
+    
+    # 3. Передаем в таймер и время, и имя выбранной травы
+    countdown_gathering(gather_duration, target_herb)
+
+def countdown_gathering(seconds_left, target_herb):
+    """Тикает каждую секунду и помнит, какую траву мы ищем"""
+    if seconds_left > 0:
+        forest_status.config(
+            text=f"Вы пробираетесь сквозь чащу...\n\n⏳ Осталось времени: {seconds_left} сек.",
+            fg="#d4af37"
+        )
+        # Передаем target_herb дальше по цепочке каждую секунду
+        root.after(1000, countdown_gathering, seconds_left - 1, target_herb)
+    else:
+        # Передаем найденную траву в финальную функцию
+        finish_gathering(target_herb)
+
+def finish_gathering(true_name):
+    """Кладет заранее выбранную траву в сумку"""
+    global is_gathering
+    
+    rarity = INGREDIENTS_HAR[true_name]["rarity"]
+    display_name = f"Неизвестное растение (Редк. {rarity})"
+    
+    if display_name not in player_stats["inventory"]:
+        player_stats["inventory"][display_name] = {
+            "quantity": 1,
+            "true_names": [true_name],
+            "rarity": rarity
+        }
+    else:
+        player_stats["inventory"][display_name]["quantity"] += 1
+        player_stats["inventory"][display_name]["true_names"].append(true_name)
+    
+    update_inventory_display()
     
     forest_status.config(
-        text=f"Вы нашли: {found_herb}!\n\nОписание:\n{description}",
+        text=f"✨ Поиск завершён!\n\nВ сумку добавлено:\n{display_name}",
         fg="#e6dfd3"
     )
+    
+    gather_button.config(state="normal")
+    is_gathering = False
+
 
 
 
@@ -197,49 +254,6 @@ def update_inventory_display():
     final_text = "\n".join(lines)
     inventory_label.config(text=final_text)
 
-
-# --- ФУНКЦИИ КНОПОК И СОБЫТИЙ ---
-
-def go_to_forest(event=None):
-    """Функция сбора трав. Запускается по кнопке или горячей клавише"""
-    # Если функция вызвана нажатием клавиатуры (event существует)
-    if event is not None:
-        # Проверяем, какой символ был нажат.
-        # event.char содержит именно ту букву, которую ввёл пользователь
-        if event.char not in ['f', 'F', 'а', 'А']:
-            return # Если нажата любая другая кнопка (например, 'Ц' или 'X') — ничего не делаем
-    import random
-    
-    # Собираем пока только редкость 1
-    starting_herbs = [name for name, info in INGREDIENTS_HAR.items() if info["rarity"] == 1]
-    true_name = random.choice(starting_herbs)
-    
-    # Подтягиваем характеристики из нашей большой базы знаний
-    rarity = INGREDIENTS_HAR[true_name]["rarity"]
-    
-    # Формируем имя, которое увидит игрок
-    display_name = f"Неизвестное растение (Редк. {rarity})"
-    
-    # --- ЛОГИКА ТАЙНОГО ИНВЕНТАРЯ ---
-    if display_name not in player_stats["inventory"]:
-        # Создаем внутри инвентаря скрытый словарик для этой группы трав
-        player_stats["inventory"][display_name] = {
-            "quantity": 1,
-            "true_names": [true_name], # Список истинных имён, которые тут прячутся
-            "rarity": rarity
-        }
-    else:
-        player_stats["inventory"][display_name]["quantity"] += 1
-        player_stats["inventory"][display_name]["true_names"].append(true_name)
-    
-    # Обновляем экран инвентаря
-    update_inventory_display()
-    
-    # Меняем текст в лесу: игрок видит только редкость, но не имя!
-    forest_status.config(
-        text=f"Вы тщательно обыскали заросли и срезали странный стебель.\n\nВ сумку добавлено: {display_name}",
-        fg="#e6dfd3"
-    )
 
 
 #создание кнопок
